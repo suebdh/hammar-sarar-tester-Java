@@ -16,6 +16,12 @@ public class FareCalculatorService {
         //TODO: Some tests are failing here. Need to check if this logic is correct
         double duration = (outHour - inHour) /(60.0*60.0*1000.0);
 
+        // Si la durée est inférieure à 30 minutes, le prix doit être égal à 0
+        if (duration < 0.5) {
+            ticket.setPrice(0);
+            return; // On quitte la méthode, pas d'autre calcul à effectuer
+        }
+
         switch (ticket.getParkingSpot().getParkingType()){
             case CAR: {
                 ticket.setPrice(duration * Fare.CAR_RATE_PER_HOUR);
