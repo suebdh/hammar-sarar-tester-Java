@@ -143,7 +143,7 @@ public class FareCalculatorServiceTest {
         // Appeler la méthode calculateFare
         fareCalculatorService.calculateFare(ticket);
 
-        // Vérifier que le prix est égal à 0 pour un stationnement de moins de 30 minutes
+        // Vérifier que le prix est égal à 0 pour un stationnement de moins de 30 minutes pour une voiture
         assertEquals(0, ticket.getPrice(), "The fare should be 0 for less than 30 minutes of parking time of a CAR.");
     }
 
@@ -163,12 +163,56 @@ public class FareCalculatorServiceTest {
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
 
-        // Appeler la méthode calculateFare qui est sensée échouer
+        // Appeler la méthode calculateFare
         fareCalculatorService.calculateFare(ticket);
 
-        // Vérifier que le prix est égal à 0 pour un stationnement de moins de 30 minutes
+        // Vérifier que le prix est égal à 0 pour un stationnement de moins de 30 minutes pour une moto
         assertEquals(0, ticket.getPrice(), "The fare should be 0 for less than 30 minutes of parking time of a BIKE.");
     }
+
+    /**
+     * BONUS - Test ajouté pour vérifier le calcul du tarif pour exactement 30 minutes et plus.
+     * Ce test n'était pas explicitement demandé dans l'étape 3 du projet.
+     */
+    @Test
+    public void calculateFareCarWithExactly30Minutes_shouldApplyHalfRate() {
+        // Arrange
+        Date inTime = new Date();
+        Date outTime = new Date(inTime.getTime() + 30 * 60 * 1000); // 30 min
+        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
+
+        ticket.setInTime(inTime);
+        ticket.setOutTime(outTime);
+        ticket.setParkingSpot(parkingSpot);
+
+        // Act
+        fareCalculatorService.calculateFare(ticket);
+
+        // Assert
+        double expectedFare = Fare.CAR_RATE_PER_HOUR * 0.5;
+        assertEquals(expectedFare, ticket.getPrice(), 0.01, "Fare should be 50% of hourly rate for 30 minutes");
+    }
+
+    /**
+     * BONUS - Test ajouté pour vérifier le calcul du tarif pour plus de 30 minutes
+     * Ce test n'était pas explicitement demandé dans l'étape 3 du projet.
+     */
+    @Test
+    public void calculateFareCarWithMoreThan30Minutes_shouldApplyCorrectRate() {
+        // Arrange
+        Date inTime = new Date();
+        Date outTime = new Date(inTime.getTime() + 45 * 60 * 1000); // 45 min
+        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
+
+        ticket.setInTime(inTime);
+        ticket.setOutTime(outTime);
+        ticket.setParkingSpot(parkingSpot);
+
+        // Act
+        fareCalculatorService.calculateFare(ticket);
+
+        // Assert
+        double expectedFare = Fare.CAR_RATE_PER_HOUR * 0.75;
+        assertEquals(expectedFare, ticket.getPrice(), 0.01, "Fare should be 75% of hourly rate for 45 minutes");
+    }
 }
-
-

@@ -10,11 +10,11 @@ public class FareCalculatorService {
             throw new IllegalArgumentException("Out time provided is incorrect:"+ticket.getOutTime().toString());
         }
 
-        long inHour = ticket.getInTime().getTime();
-        long outHour = ticket.getOutTime().getTime();
+        long inTime = ticket.getInTime().getTime();
+        long outTime = ticket.getOutTime().getTime();
 
         //Passage de millisecondes à heures
-        float durationInHours = (outHour - inHour) /3600000f;
+        float durationInHours = (outTime - inTime) /3600000f;
 
         // Si la durée est inférieure à 30 minutes, le prix doit être égal à 0
         if (durationInHours < 0.5) {
