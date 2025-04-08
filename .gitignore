@@ -1,0 +1,16 @@
+# Ignore les fichiers et répertoires spécifiques à IntelliJ IDEA
+.idea/
+*.iml
+
+# Ignore les fichiers de build générés par Maven
+target/
+
+# Ignore les fichiers log
+*.log
+
+# Ignore les fichiers temporaires
+*~
+
+# Ignore les fichiers de sauvegarde de Vim
+*.swp
+*.swo
