@@ -215,4 +215,41 @@ public class FareCalculatorServiceTest {
         double expectedFare = Fare.CAR_RATE_PER_HOUR * 0.75;
         assertEquals(expectedFare, ticket.getPrice(), 0.01, "Fare should be 75% of hourly rate for 45 minutes");
     }
+
+    @Test
+    public void calculateFareCarWithDiscountDescription() {
+        // Arrange
+        Date inTime = new Date();
+        Date outTime = new Date(inTime.getTime() + 60 * 60 * 1000); // 50 min
+        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
+
+        ticket.setInTime(inTime);
+        ticket.setOutTime(outTime);
+        ticket.setParkingSpot(parkingSpot);
+
+        // Act
+        fareCalculatorService.calculateFare(ticket, true);
+
+        //Assert
+        assertEquals(Fare.CAR_RATE_PER_HOUR * Fare.RATE_AFTER_REDUCTION, ticket.getPrice(), 0.01, "Expected Reduction 95% of the full price for the CAR, price obtained = " + ticket.getPrice());
+    }
+
+    @Test
+    public void calculateFareBikeWithDiscountDescription() {
+        // Arrange
+        Date inTime = new Date();
+        Date outTime = new Date(inTime.getTime() + 60 * 60 * 1000); // 50 min
+        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.BIKE, false);
+
+        ticket.setInTime(inTime);
+        ticket.setOutTime(outTime);
+        ticket.setParkingSpot(parkingSpot);
+
+        // Act
+        fareCalculatorService.calculateFare(ticket, true);
+
+        //Assert
+        assertEquals(Fare.BIKE_RATE_PER_HOUR * Fare.RATE_AFTER_REDUCTION, ticket.getPrice(), 0.01, "Expected Reduction 95% of the full price for the MOTO, price obtained = " + ticket.getPrice());
+
+    }
 }
