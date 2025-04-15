@@ -2,6 +2,7 @@ package com.parkit.parkingsystem.service;
 
 import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.model.Ticket;
+import com.parkit.parkingsystem.util.RoundUtil;
 
 public class FareCalculatorService {
 
@@ -13,7 +14,7 @@ public class FareCalculatorService {
         long inTime = ticket.getInTime().getTime();
         long outTime = ticket.getOutTime().getTime();
 
-        //Passage de millisecondes à heures
+        //Passage de millisecondes à heures : 3600000f équivalent à 60.0*60.0*1000.0
         float durationInHours = (outTime - inTime) / 3600000f;
 
         // Si la durée est inférieure à 30 minutes, le prix doit être égal à 0
@@ -35,10 +36,11 @@ public class FareCalculatorService {
             }
 
             if (discount) {
-                ticket.setPrice(fare * Fare.RATE_AFTER_REDUCTION);
+                ticket.setPrice(RoundUtil.roundToTwoDecimals(fare * Fare.RATE_AFTER_REDUCTION));
             } else {
-                ticket.setPrice(fare);
+                ticket.setPrice(RoundUtil.roundToTwoDecimals(fare));
             }
+
         }
 
     }
