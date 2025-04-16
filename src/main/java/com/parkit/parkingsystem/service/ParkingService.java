@@ -113,9 +113,9 @@ public class ParkingService {
             /* Modification de la condition nbTickets > 0 en nbTickets > pour éviter de considérer un client comme récurrent dès sa première venue.
            Le premier ticket correspond à la session en cours (créée à l’entrée du véhicule), il faut donc qu’il y ait au moins un ticket précédent (nbTickets > 1) pour appliquer la réduction client fidèle.*/
             if (nbTickets > 1) {
-                fareCalculatorService.calculateFare(ticket, true);
+                fareCalculatorService.calculateFare(ticket, true); //client régulier
             } else {
-                fareCalculatorService.calculateFare(ticket);
+                fareCalculatorService.calculateFare(ticket); //client normal
             }
 
             if (ticketDAO.updateTicket(ticket)) {
