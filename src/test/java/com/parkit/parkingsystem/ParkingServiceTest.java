@@ -17,8 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Date;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -238,6 +237,25 @@ public class ParkingServiceTest {
 
         // Verify
         verify(parkingSpotDAO, times(1)).getNextAvailableSlot(ParkingType.CAR);
+    }
 
+    /**
+     * Teste le comportement de la méthode getNextParkingNumberIfAvailable()
+     * lorsqu'aucune place de parking n'est disponible.
+     *
+     * Le test vérifie que la méthode retourne null dans ce cas.
+     */
+    @Test
+    public void testGetNextParkingNumberIfAvailableParkingNumberNotFound(){
+        //Arrange
+        when(inputReaderUtil.readSelection()).thenReturn(1); //1= CAR
+        when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(0);//aucune place de parking n'est disponible
+        //Act
+        ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
+        //Assert
+        assertNull(parkingSpot, "Aucune place de parking ne doit être disponible (parkingSpot doit être null)");
+
+        // Verify
+        verify(parkingSpotDAO, times(1)).getNextAvailableSlot(ParkingType.CAR);
     }
 }

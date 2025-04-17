@@ -70,15 +70,28 @@ public class ParkingService {
         try {
             ParkingType parkingType = getVehichleType();
             parkingNumber = parkingSpotDAO.getNextAvailableSlot(parkingType);
-            if (parkingNumber > 0) {
-                parkingSpot = new ParkingSpot(parkingNumber, parkingType, true);
+
+            //Adaptation pour faire fonctionner le test testGetNextParkingNumberIfAvailableParkingNumberNotFound()
+            if (parkingNumber <= 0) {
+                if (parkingNumber == 0) {
+                    // Cas normal : pas de place disponible
+                    logger.info("Aucune place disponible pour le type : " + parkingType);
+                    return null;
+                } else {
+                    // Cas anormal : problème en base ou retour incohérent
+                    throw new Exception("Erreur lors de la récupération du numéro de place. Valeur retournée : " + parkingNumber);
+                }
             } else {
-                throw new Exception("Error fetching parking number from DB. Parking slots might be full");
+                // Cas normal : une place est disponible
+                parkingSpot = new ParkingSpot(parkingNumber, parkingType, true);
             }
+
         } catch (IllegalArgumentException ie) {
             logger.error("Error parsing user input for type of vehicle", ie);
+            //Erreur de saisie : type de véhicule non reconn
         } catch (Exception e) {
             logger.error("Error fetching next available parking slot", e);
+            //Erreur lors de la récupération de la prochaine place disponible
         }
         return parkingSpot;
     }
