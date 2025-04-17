@@ -70,7 +70,7 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void processExitingVehicleTest() throws Exception{
+    public void processExitingVehicleTest() throws Exception {
         //corresponds precisely to processExitingVehicleTest_nonRegularClient_shouldNotApplyDiscount()
         // Arrange (Given)
         String vehicleRegNumber = inputReaderUtil.readVehicleRegistrationNumber();
@@ -103,7 +103,7 @@ public class ParkingServiceTest {
      * @author suebdh
      */
     @Test
-    public void processExitingVehicleTest_RegularClient_shouldApplyDiscount() throws Exception{
+    public void processExitingVehicleTest_RegularClient_shouldApplyDiscount() throws Exception {
         // Arrange (Given) : Définir le comportement attendu du mock (stub)
         Ticket ticket = createMockTicket();//refactor : Ticket simulé via méthode utilitaire pour éviter répétitions : DRY
 
@@ -145,8 +145,7 @@ public class ParkingServiceTest {
      * @author suebdh
      */
     @Test
-    public void testProcessIncomingVehicle() throws Exception
-    {
+    public void testProcessIncomingVehicle() throws Exception {
 
         //Arrange (Given)
         // Ces deux stubbing ligne 113 et ligne 115 sont nécessaires pour simuler les entrées utilisateur avant que la méthode processIncomingVehicle() ne soit exécutée.
@@ -215,7 +214,7 @@ public class ParkingServiceTest {
     /**
      * Teste la méthode getNextParkingNumberIfAvailable() pour s'assurer qu'elle retourne
      * un ParkingSpot avec l'identifiant 1 et qui est disponible.
-     *
+     * <p>
      * Ce test simule une place disponible en retournant l'ID 1 depuis le mock DAO.
      * On vérifie que le ParkingSpot retourné correspond bien aux attentes.
      *
@@ -242,11 +241,11 @@ public class ParkingServiceTest {
     /**
      * Teste le comportement de la méthode getNextParkingNumberIfAvailable()
      * lorsqu'aucune place de parking n'est disponible.
-     *
+     * <p>
      * Le test vérifie que la méthode retourne null dans ce cas.
      */
     @Test
-    public void testGetNextParkingNumberIfAvailableParkingNumberNotFound(){
+    public void testGetNextParkingNumberIfAvailableParkingNumberNotFound() {
         //Arrange
         when(inputReaderUtil.readSelection()).thenReturn(1); //1= CAR
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(0);//aucune place de parking n'est disponible
@@ -257,5 +256,21 @@ public class ParkingServiceTest {
 
         // Verify
         verify(parkingSpotDAO, times(1)).getNextAvailableSlot(ParkingType.CAR);
+    }
+
+    // Teste la méthode getNextParkingNumberIfAvailable() avec une saisie invalide (3) pour le type de véhicule.
+    // Vérifie que la méthode retourne null et que la méthode getNextAvailableSlot() n'est pas appelée.
+    @Test
+    public void testGetNextParkingNumberIfAvailableParkingNumberWrongArgument() {
+        //Arrange : Saisie invalide de l’utilisateur
+        when(inputReaderUtil.readSelection()).thenReturn(3); // 3 : Valeur invalide : ni 1 (CAR) ni 2 (BIKE)
+
+        //Act
+        ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
+        //Assert
+        assertNull(parkingSpot, "Aucune place de parking ne peut être affectée (Saisie type véhicule erroné)");
+
+        // Verify : Vérifie que la méthode getNextAvailableSlot() n’a jamais été appelée, peu importe l’argument passé.
+        verify(parkingSpotDAO, never()).getNextAvailableSlot(any());
     }
 }
