@@ -131,7 +131,7 @@ public class ParkingServiceTest {
      * This test simulates the process of a vehicle entering the parking lot,
      * ensuring that the vehicle's registration number is read, a parking spot is assigned,
      * and the ticket is saved correctly.
-     *
+     * <p>
      * It mocks interactions with the input reader, parking spot DAO, and ticket DAO.
      * It checks if the following behaviors occur:
      * - The parking spot DAO is queried for the next available spot.
@@ -185,5 +185,31 @@ public class ParkingServiceTest {
         // Vérification de l'état du parking (ex: disponibilité de l'emplacement)
         ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false); // parking spot should be occupied
         assertFalse(parkingSpot.isAvailable(), "L'emplacement de parking doit être marqué comme occupé.");
+    }
+
+    /**
+     * Teste le comportement de la méthode processExitingVehicle() lorsque la mise à jour du ticket échoue.
+     * La méthode updateTicket() retourne false, indiquant un échec de l'enregistrement.
+     * Le test vérifie que, malgré l'échec, le parking n'est pas mis à jour (par exemple, pas libéré à tort).
+     *
+     * @author suebdh
+     */
+    @Test
+    public void processExitingVehicleTestUnableUpdate() {
+        // Arrange (Given)
+
+        Ticket ticket = createMockTicket();//refactor : Ticket simulé via méthode utilitaire pour éviter répétitions : DRY
+        //Définition ou Stubbing du comportement attendu du mock (stub)
+        when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
+        when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(false);
+        // when(ticketDAO.getNbTicket(anyString())).thenReturn(1); // 1 seul ticket → pas de remise
+        // Cette ligne est volontairement commentée car la mise à jour du ticket échoue (updateTicket() renvoie false),
+        // Donc le traitement ne va pas jusqu'à l'étape où le nombre de tickets est utilisé pour déterminer si une remise s'applique.
+
+        //Act (When)
+        parkingService.processExitingVehicle();
+
+        // Assert (Then) : Vérifier que la méthode updateParking n'a JAMAIS été appelée en cas d'échec d'updateTicket()
+        verify(parkingSpotDAO, Mockito.never()).updateParking(any(ParkingSpot.class));
     }
 }
