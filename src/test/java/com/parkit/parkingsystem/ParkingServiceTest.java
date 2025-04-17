@@ -53,7 +53,7 @@ public class ParkingServiceTest {
     @BeforeEach
     public void setUpPerTest() {
         try {
-            when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
+            //when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
 
             Ticket ticket = createMockTicket();//refactor : Ticket simulé via méthode utilitaire pour éviter répétitions : DRY
 
@@ -71,12 +71,13 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void processExitingVehicleTest() {
+    public void processExitingVehicleTest() throws Exception{
         //corresponds precisely to processExitingVehicleTest_nonRegularClient_shouldNotApplyDiscount()
         // Arrange (Given)
-
+        String vehicleRegNumber = inputReaderUtil.readVehicleRegistrationNumber();
         Ticket ticket = createMockTicket();//refactor : Ticket simulé via méthode utilitaire pour éviter répétitions : DRY
         //Définition ou Stubbing du comportement attendu du mock (stub)
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
         when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
         when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
         when(ticketDAO.getNbTicket(anyString())).thenReturn(1); // 1 seul ticket → pas de remise
@@ -103,10 +104,13 @@ public class ParkingServiceTest {
      * @author suebdh
      */
     @Test
-    public void processExitingVehicleTest_RegularClient_shouldApplyDiscount() {
+    public void processExitingVehicleTest_RegularClient_shouldApplyDiscount() throws Exception{
         // Arrange (Given) : Définir le comportement attendu du mock (stub)
         Ticket ticket = createMockTicket();//refactor : Ticket simulé via méthode utilitaire pour éviter répétitions : DRY
 
+        String vehicleRegNumber = inputReaderUtil.readVehicleRegistrationNumber();
+        //Définition ou Stubbing du comportement attendu du mock (stub)
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
         when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
         when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
         when(ticketDAO.getNbTicket(anyString())).thenReturn(2); // + de 1 ticket → remise
@@ -142,7 +146,7 @@ public class ParkingServiceTest {
      * @author suebdh
      */
     @Test
-    public void testProcessIncomingVehicle() //throws Exception
+    public void testProcessIncomingVehicle() throws Exception
     {
 
         //Arrange (Given)
@@ -153,11 +157,7 @@ public class ParkingServiceTest {
         // Ils doivent être définis avant l'appel à `parkingSpotDAO.getNextAvailableSlot()` car ce dernier pourrait dépendre des informations d'entrée utilisateur pour déterminer la disponibilité du parking.
 
         when(inputReaderUtil.readSelection()).thenReturn(1);
-        try {
-            when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
-        } catch (Exception e) {
-            throw new RuntimeException("Error mocking inputReaderUtil.readVehicleRegistrationNumber()", e);
-        }
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
         when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(1);
         //On en a besoin car la méthode processIncomingVehicle() utilise ce résultat pour décider s’il y a une place libre.
         //when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");// pas besoin de la mettre, elle est déjà mise en place dans le setUp
@@ -211,5 +211,33 @@ public class ParkingServiceTest {
 
         // Assert (Then) : Vérifier que la méthode updateParking n'a JAMAIS été appelée en cas d'échec d'updateTicket()
         verify(parkingSpotDAO, Mockito.never()).updateParking(any(ParkingSpot.class));
+    }
+
+    /**
+     * Teste la méthode getNextParkingNumberIfAvailable() pour s'assurer qu'elle retourne
+     * un ParkingSpot avec l'identifiant 1 et qui est disponible.
+     *
+     * Ce test simule une place disponible en retournant l'ID 1 depuis le mock DAO.
+     * On vérifie que le ParkingSpot retourné correspond bien aux attentes.
+     *
+     * @author suebdh
+     */
+    @Test
+    public void testGetNextParkingNumberIfAvailable() {
+        //Arrange
+        when(inputReaderUtil.readSelection()).thenReturn(1); //1= CAR
+        when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);//le num de la place de parking dispo est 1
+
+        //Act
+        ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
+        //Assert
+        assertTrue(parkingSpot != null, "Le ParkingSpot ne doit pas être null.");
+        assertTrue(parkingSpot.getId() == 1, "L'identifiant du ParkingSpot doit être 1.");
+        assertTrue(parkingSpot.getParkingType() == ParkingType.CAR, "Le type de Parking doit être CAR.");
+        assertTrue(parkingSpot.isAvailable(), "Le ParkingSpot doit être disponible.");
+
+        // Verify
+        verify(parkingSpotDAO, times(1)).getNextAvailableSlot(ParkingType.CAR);
+
     }
 }
