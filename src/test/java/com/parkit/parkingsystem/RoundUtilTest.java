@@ -15,9 +15,9 @@ public class RoundUtilTest {
     @Test
     public void roundToTwoDecimals_shouldRoundExactHalfDownCorrectly() {
         double value = 2.555;
-        double expected = 2.56;
+        double expected = 2.55;
         assertEquals(expected, RoundUtil.roundToTwoDecimals(value),
-                "Expected 2.55 but got " + RoundUtil.roundToTwoDecimals(value));
+                "Expected 2.55 (HalfDown) but got " + RoundUtil.roundToTwoDecimals(value));
     }
 
     @Test
@@ -61,9 +61,9 @@ public class RoundUtilTest {
     @Test
     public void roundToTwoDecimals_shouldRoundEdgeCase005Correctly() {
         double value = 0.005;
-        double expected = 0.01;
+        double expected = 0.00;
         assertEquals(expected, RoundUtil.roundToTwoDecimals(value),
-                "Expected 0.00 but got " + RoundUtil.roundToTwoDecimals(value));
+                "Expected 0.00 (half down) but got " + RoundUtil.roundToTwoDecimals(value));
     }
 
     @Test
