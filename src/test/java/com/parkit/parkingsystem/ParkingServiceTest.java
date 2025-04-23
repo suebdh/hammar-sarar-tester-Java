@@ -1,5 +1,6 @@
 package com.parkit.parkingsystem;
 
+import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.constants.ParkingType;
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
 import com.parkit.parkingsystem.dao.TicketDAO;
@@ -7,6 +8,7 @@ import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
+import com.parkit.parkingsystem.util.RoundUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,35 +34,17 @@ public class ParkingServiceTest {
     @Mock
     private static TicketDAO ticketDAO;
 
-    /**
-     * Utility method to create a mock Ticket object for simulating a parked vehicle.
-     * The ticket is set with a parking spot and a vehicle registration number.
-     * The in-time is set to 1 hour ago (3600000 milliseconds).
-     *
-     * @author suebdh
-     */
-    private Ticket createMockTicket() {
-        // Création d'un ticket cohérent pour simuler un client qui a garé son véhicule
-        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
-        Ticket ticket = new Ticket();
-        ticket.setInTime(new Date(System.currentTimeMillis() - 3600000)); // 3600000 = 60 * 60 * 1000 c.à.d il y a 1h
-        ticket.setVehicleRegNumber("ABCDEF");
-        ticket.setParkingSpot(parkingSpot);
-        return ticket;
-    }
+    private Ticket ticket;
+    private ParkingSpot parkingSpot;
 
     @BeforeEach
     public void setUpPerTest() {
         try {
-            //when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
-
-            Ticket ticket = createMockTicket();//refactor : Ticket simulé via méthode utilitaire pour éviter répétitions : DRY
-
-            //remove unnecessary stubbings
-            //when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
-            //when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
-            //when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
-
+            parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
+            ticket = new Ticket();
+            ticket.setInTime(new Date(System.currentTimeMillis() - 3600000)); // 3600000 = 60 * 60 * 1000 c.à.d il y a 1h
+            ticket.setParkingSpot(parkingSpot);
+            ticket.setVehicleRegNumber("ABCDEF");
             //Injection des mocks dans la classe à tester (step2)
             parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
         } catch (Exception e) {
@@ -73,13 +57,12 @@ public class ParkingServiceTest {
     public void processExitingVehicleTest() throws Exception {
         //corresponds precisely to processExitingVehicleTest_nonRegularClient_shouldNotApplyDiscount()
         // Arrange (Given)
-        String vehicleRegNumber = inputReaderUtil.readVehicleRegistrationNumber();
-        Ticket ticket = createMockTicket();//refactor : Ticket simulé via méthode utilitaire pour éviter répétitions : DRY
         //Définition ou Stubbing du comportement attendu du mock (stub)
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
         when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
-        when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
         when(ticketDAO.getNbTicket(anyString())).thenReturn(1); // 1 seul ticket → pas de remise
+        when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
 
         // Act (When)
         parkingService.processExitingVehicle();
@@ -87,14 +70,9 @@ public class ParkingServiceTest {
         // Assert (Then) : Vérifier que la méthode updateParking a bien été appelée
         verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
 
-        // Capturer l'argument passé à updateParking()
-        ArgumentCaptor<ParkingSpot> parkingSpotCaptor = ArgumentCaptor.forClass(ParkingSpot.class);
-        verify(parkingSpotDAO).updateParking(parkingSpotCaptor.capture());
-
-        // Vérifier que l'emplacement a bien été marqué comme disponible
-        ParkingSpot capturedParkingSpot = parkingSpotCaptor.getValue();
-        assertTrue(capturedParkingSpot.isAvailable(), "Le parking doit être marqué comme disponible");
-    }
+        assertNotNull(ticket.getOutTime(), "The ticket out time must not be Null");
+        assertTrue(parkingSpot.isAvailable(), "The parkingSpot must be marked as available after exiting the vehicle");
+     }
 
     /**
      * Test the behavior of processExitingVehicle() method when a regular client exits the parking.
@@ -105,9 +83,8 @@ public class ParkingServiceTest {
     @Test
     public void processExitingVehicleTest_RegularClient_shouldApplyDiscount() throws Exception {
         // Arrange (Given) : Définir le comportement attendu du mock (stub)
-        Ticket ticket = createMockTicket();//refactor : Ticket simulé via méthode utilitaire pour éviter répétitions : DRY
+        //Ticket ticket = createTicket();//refactor : Ticket simulé via méthode utilitaire pour éviter répétitions : DRY
 
-        String vehicleRegNumber = inputReaderUtil.readVehicleRegistrationNumber();
         //Définition ou Stubbing du comportement attendu du mock (stub)
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
         when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
@@ -120,13 +97,17 @@ public class ParkingServiceTest {
         // Assert (Then) : Vérifier que la méthode updateParking a bien été appelée
         verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
 
-        // Capturer l'argument passé à updateParking()
-        ArgumentCaptor<ParkingSpot> parkingSpotCaptor = ArgumentCaptor.forClass(ParkingSpot.class);
-        verify(parkingSpotDAO).updateParking(parkingSpotCaptor.capture());
+       //On capture le ticket passé à updateTicket(), et on vérifie si la remise de 5% a bien été appliquée au prix.
+        ArgumentCaptor<Ticket> ticketCaptor = ArgumentCaptor.forClass(Ticket.class);
+        verify(ticketDAO).updateTicket(ticketCaptor.capture());
 
-        // Vérifier que l'emplacement a bien été marqué comme disponible
-        ParkingSpot capturedParkingSpot = parkingSpotCaptor.getValue();
-        assertTrue(capturedParkingSpot.isAvailable(), "Le parking doit être marqué comme disponible");
+        Ticket updatedTicket = ticketCaptor.getValue();
+
+        double expectedPriceWithoutDiscount = (updatedTicket.getDuration() * Fare.CAR_RATE_PER_HOUR); // 1h de stationnement
+        double expectedPriceWithDiscount = expectedPriceWithoutDiscount * 0.95;
+
+        assertEquals(RoundUtil.roundToTwoDecimals(expectedPriceWithDiscount), updatedTicket.getPrice(),
+                "Le tarif avec remise de 5% devrait être appliqué pour un client régulier.");
     }
 
     /**
@@ -148,40 +129,23 @@ public class ParkingServiceTest {
     public void testProcessIncomingVehicle() throws Exception {
 
         //Arrange (Given)
-        // Ces deux stubbing ligne 113 et ligne 115 sont nécessaires pour simuler les entrées utilisateur avant que la méthode processIncomingVehicle() ne soit exécutée.
-        // En effet, la méthode utilise ces valeurs (sélection d'une option et le numéro d'immatriculation du véhicule) pour déterminer les actions suivantes.
-        // Le mock de `inputReaderUtil.readSelection()` simule la sélection d'une option par l'utilisateur,
-        // et celui de `inputReaderUtil.readVehicleRegistrationNumber()` simule la saisie du numéro d'immatriculation.
-        // Ils doivent être définis avant l'appel à `parkingSpotDAO.getNextAvailableSlot()` car ce dernier pourrait dépendre des informations d'entrée utilisateur pour déterminer la disponibilité du parking.
-
         when(inputReaderUtil.readSelection()).thenReturn(1);
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
         when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(1);
-        //On en a besoin car la méthode processIncomingVehicle() utilise ce résultat pour décider s’il y a une place libre.
-        //when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");// pas besoin de la mettre, elle est déjà mise en place dans le setUp
-        //when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true); //on suppose que le premier spot est disponible
-        // Utilisation de doReturn().when() au lieu de when().thenReturn() pour éviter une erreur de stubbing (argument mismatch avec any()).
-        // Cela permet de mocker updateParking() sans exécuter la méthode réelle, et sans risquer de NullPointerException liée au matcher any().
-        doReturn(true).when(parkingSpotDAO).updateParking(any(ParkingSpot.class));
-        // On en a besoin car cette méthode est appelée pour marquer la place comme occupée.
-        when(ticketDAO.getNbTicket(anyString())).thenReturn(1);
-        // Appelée pour savoir si une remise doit être appliquée ou non, ce qui est utile si on veut tester la logique de client régulier.
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+        when(ticketDAO.getNbTicket("ABCDEF")).thenReturn(1);
         when(ticketDAO.saveTicket(any(Ticket.class))).thenReturn(true);
-        //Nécessaire pour vérifier que le ticket est bien enregistré.
 
         //Act (When)
         parkingService.processIncomingVehicle();
 
         //Assert(Then)
         // Vérification des comportements → que les bonnes méthodes ont bien été appelées
-        verify(parkingSpotDAO, times(1)).getNextAvailableSlot(any(ParkingType.class));// Vérifie que l'emplacement suivant a été demandé
         verify(parkingSpotDAO, times(1)).updateParking(any(ParkingSpot.class));// Vérifie que l'emplacement a été marqué comme occupé
-        verify(ticketDAO, times(1)).getNbTicket(anyString());// Vérifie que le nombre de tickets existants a été vérifié
         verify(ticketDAO, times(1)).saveTicket(any(Ticket.class));// Vérifie que le ticket a été enregistré
+        verify(ticketDAO, times(1)).getNbTicket("ABCDEF");// Vérifie que le nombre de tickets existants a été vérifié
 
         // Assertions : assert(expected, actual)
-        // Vérification de l'état du parking (ex: disponibilité de l'emplacement)
-        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false); // parking spot should be occupied
         assertFalse(parkingSpot.isAvailable(), "L'emplacement de parking doit être marqué comme occupé.");
     }
 
@@ -193,11 +157,9 @@ public class ParkingServiceTest {
      * @author suebdh
      */
     @Test
-    public void processExitingVehicleTestUnableUpdate() {
+    public void processExitingVehicleTestUnableUpdate() throws Exception {
         // Arrange (Given)
-
-        Ticket ticket = createMockTicket();//refactor : Ticket simulé via méthode utilitaire pour éviter répétitions : DRY
-        //Définition ou Stubbing du comportement attendu du mock (stub)
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
         when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
         when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(false);
         // when(ticketDAO.getNbTicket(anyString())).thenReturn(1); // 1 seul ticket → pas de remise
@@ -209,6 +171,8 @@ public class ParkingServiceTest {
 
         // Assert (Then) : Vérifier que la méthode updateParking n'a JAMAIS été appelée en cas d'échec d'updateTicket()
         verify(parkingSpotDAO, Mockito.never()).updateParking(any(ParkingSpot.class));
+
+        assertFalse(ticketDAO.updateTicket(any(Ticket.class)),"La mise à jour du ticket aurait dû échouer (updateTicket doit renvoyer false).");
     }
 
     /**
@@ -228,14 +192,16 @@ public class ParkingServiceTest {
 
         //Act
         ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
+
         //Assert
+
+        // Verify
+        verify(parkingSpotDAO, times(1)).getNextAvailableSlot(ParkingType.CAR);
+
         assertTrue(parkingSpot != null, "Le ParkingSpot ne doit pas être null.");
         assertTrue(parkingSpot.getId() == 1, "L'identifiant du ParkingSpot doit être 1.");
         assertTrue(parkingSpot.getParkingType() == ParkingType.CAR, "Le type de Parking doit être CAR.");
         assertTrue(parkingSpot.isAvailable(), "Le ParkingSpot doit être disponible.");
-
-        // Verify
-        verify(parkingSpotDAO, times(1)).getNextAvailableSlot(ParkingType.CAR);
     }
 
     /**
@@ -252,10 +218,10 @@ public class ParkingServiceTest {
         //Act
         ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
         //Assert
+        verify(parkingSpotDAO, times(1)).getNextAvailableSlot(ParkingType.CAR);
+
         assertNull(parkingSpot, "Aucune place de parking ne doit être disponible (parkingSpot doit être null)");
 
-        // Verify
-        verify(parkingSpotDAO, times(1)).getNextAvailableSlot(ParkingType.CAR);
     }
 
     // Teste la méthode getNextParkingNumberIfAvailable() avec une saisie invalide (3) pour le type de véhicule.
@@ -268,9 +234,59 @@ public class ParkingServiceTest {
         //Act
         ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
         //Assert
-        assertNull(parkingSpot, "Aucune place de parking ne peut être affectée (Saisie type véhicule erroné)");
 
+        verify(inputReaderUtil, times(1)).readSelection();
         // Verify : Vérifie que la méthode getNextAvailableSlot() n’a jamais été appelée, peu importe l’argument passé.
         verify(parkingSpotDAO, never()).getNextAvailableSlot(any());
+        assertNull(parkingSpot, "Aucune place de parking ne peut être affectée (Saisie type véhicule erroné)");
     }
+
+    // Test: Verify behavior of getNextParkingNumberIfAvailable for BIKE
+    // This test ensures that when the user selects BIKE (input = 2), the correct available parking spot is returned
+    // It checks if the returned ParkingSpot is not null, has the correct ID, type, and availability status.
+    @Test
+    public void testGetNextParkingNumberIfAvailableForBIKE() {
+        //Arrange
+        when(inputReaderUtil.readSelection()).thenReturn(2); //2= BIKE
+        when(parkingSpotDAO.getNextAvailableSlot(ParkingType.BIKE)).thenReturn(1);//le num de la place de parking dispo est 1
+
+        //Act
+        ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
+        //Assert
+        assertTrue(parkingSpot != null, "Le ParkingSpot ne doit pas être null.");
+        assertTrue(parkingSpot.getId() == 1, "L'identifiant du ParkingSpot doit être 1.");
+        assertTrue(parkingSpot.getParkingType() == ParkingType.BIKE, "Le type de Parking doit être BIKE.");
+        assertTrue(parkingSpot.isAvailable(), "Le ParkingSpot doit être disponible.");
+
+        // Verify
+        verify(parkingSpotDAO, times(1)).getNextAvailableSlot(ParkingType.BIKE);
+    }
+
+    @Test
+    public void processIncomingVehicleException() throws Exception {
+        when(inputReaderUtil.readSelection()).thenReturn(1);
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
+        when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);
+        // Forcer une exception ici pour tester le bloc catch de processIncomingVehicle().
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenThrow(new RuntimeException("Échec lors de la mise à jour de la disponibilité du parking"));
+
+        parkingService.processIncomingVehicle();
+
+        verify(parkingSpotDAO, times(1)).updateParking(any(ParkingSpot.class));
+        verify(ticketDAO, never()).saveTicket(any(Ticket.class));
+    }
+//La processExitingVehicle() gère correctement une exception qui se produit lors de la récupération d’un ticket
+    @Test
+    public void processExitingVehicleException() throws Exception {
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
+        when(ticketDAO.getTicket(anyString())).thenThrow(new RuntimeException("Impossible de récupérer le ticket associé à ce véhicule"));
+
+        parkingService.processExitingVehicle();
+
+        verify(ticketDAO, times(1)).getTicket(anyString());
+        verify(ticketDAO, never()).getNbTicket(anyString());
+    }
+
+
+
 }

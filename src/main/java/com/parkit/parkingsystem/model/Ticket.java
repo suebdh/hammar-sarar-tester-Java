@@ -58,4 +58,6 @@ public class Ticket {
     public void setOutTime(Date outTime) {
         this.outTime = outTime;
     }
+
+    public float getDuration() { return (outTime.getTime() - inTime.getTime()) / 3600000f; }
 }

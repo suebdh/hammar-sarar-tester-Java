@@ -191,7 +191,7 @@ public class FareCalculatorServiceTest {
 
         // Assert
         double expectedFare = Fare.CAR_RATE_PER_HOUR * 0.5;
-        assertEquals(expectedFare, ticket.getPrice(), 0.01, "Fare should be 50% of hourly rate for 30 minutes");
+        assertEquals(expectedFare, ticket.getPrice(), "Fare should be 50% of hourly rate for 30 minutes");
     }
 
     /**
@@ -214,7 +214,7 @@ public class FareCalculatorServiceTest {
 
         // Assert
         double expectedFare = Fare.CAR_RATE_PER_HOUR * 0.75;
-        assertEquals(expectedFare, ticket.getPrice(), 0.01, "Fare should be 75% of hourly rate for 45 minutes");
+        assertEquals(RoundUtil.roundToTwoDecimals(expectedFare), ticket.getPrice(), "Fare should be 75% of hourly rate for 45 minutes");
     }
 
     @Test
@@ -232,7 +232,7 @@ public class FareCalculatorServiceTest {
         fareCalculatorService.calculateFare(ticket, true);
 
         //Assert
-        assertEquals(RoundUtil.roundToTwoDecimals(Fare.CAR_RATE_PER_HOUR * Fare.RATE_AFTER_REDUCTION), ticket.getPrice(), 0.01, "Expected Reduction 95% of the full price for the CAR, price obtained = " + ticket.getPrice());
+        assertEquals(RoundUtil.roundToTwoDecimals(Fare.CAR_RATE_PER_HOUR * Fare.RATE_AFTER_REDUCTION), ticket.getPrice(), "Expected Reduction 95% of the full price for the CAR, price obtained = " + ticket.getPrice());
     }
 
     @Test
