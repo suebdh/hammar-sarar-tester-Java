@@ -70,15 +70,28 @@ public class ParkingService {
         try {
             ParkingType parkingType = getVehichleType();
             parkingNumber = parkingSpotDAO.getNextAvailableSlot(parkingType);
-            if (parkingNumber > 0) {
-                parkingSpot = new ParkingSpot(parkingNumber, parkingType, true);
+
+            //Adaptation pour faire fonctionner le test testGetNextParkingNumberIfAvailableParkingNumberNotFound()
+            if (parkingNumber <= 0) {
+                if (parkingNumber == 0) {
+                    // Cas normal : pas de place disponible
+                    logger.info("Aucune place disponible pour le type : " + parkingType);
+                    return null;
+                } else {
+                    // Cas anormal : problème en base ou retour incohérent
+                    throw new Exception("Erreur lors de la récupération du numéro de place. Valeur retournée : " + parkingNumber);
+                }
             } else {
-                throw new Exception("Error fetching parking number from DB. Parking slots might be full");
+                // Cas normal : une place est disponible
+                parkingSpot = new ParkingSpot(parkingNumber, parkingType, true);
             }
+
         } catch (IllegalArgumentException ie) {
             logger.error("Error parsing user input for type of vehicle", ie);
+            //Erreur de saisie : type de véhicule non reconn
         } catch (Exception e) {
             logger.error("Error fetching next available parking slot", e);
+            //Erreur lors de la récupération de la prochaine place disponible
         }
         return parkingSpot;
     }
@@ -113,9 +126,9 @@ public class ParkingService {
             /* Modification de la condition nbTickets > 0 en nbTickets > pour éviter de considérer un client comme récurrent dès sa première venue.
            Le premier ticket correspond à la session en cours (créée à l’entrée du véhicule), il faut donc qu’il y ait au moins un ticket précédent (nbTickets > 1) pour appliquer la réduction client fidèle.*/
             if (nbTickets > 1) {
-                fareCalculatorService.calculateFare(ticket, true);
+                fareCalculatorService.calculateFare(ticket, true); //client régulier
             } else {
-                fareCalculatorService.calculateFare(ticket);
+                fareCalculatorService.calculateFare(ticket); //client normal
             }
 
             if (ticketDAO.updateTicket(ticket)) {
