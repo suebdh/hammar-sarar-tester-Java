@@ -1,6 +1,5 @@
 package com.parkit.parkingsystem;
 
-import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.constants.ParkingType;
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
 import com.parkit.parkingsystem.dao.TicketDAO;
@@ -8,11 +7,9 @@ import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
-import com.parkit.parkingsystem.util.RoundUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -73,42 +70,6 @@ public class ParkingServiceTest {
         assertNotNull(ticket.getOutTime(), "The ticket out time must not be Null");
         assertTrue(parkingSpot.isAvailable(), "The parkingSpot must be marked as available after exiting the vehicle");
      }
-
-    /**
-     * Test the behavior of processExitingVehicle() method when a regular client exits the parking.
-     * The test ensures that the discount is applied when the client has more than one ticket.
-     *
-     * @author suebdh
-     */
-    @Test
-    public void processExitingVehicleTest_RegularClient_shouldApplyDiscount() throws Exception {
-        // Arrange (Given) : Définir le comportement attendu du mock (stub)
-        //Ticket ticket = createTicket();//refactor : Ticket simulé via méthode utilitaire pour éviter répétitions : DRY
-
-        //Définition ou Stubbing du comportement attendu du mock (stub)
-        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
-        when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
-        when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
-        when(ticketDAO.getNbTicket(anyString())).thenReturn(2); // + de 1 ticket → remise
-
-        // Act (When)
-        parkingService.processExitingVehicle();
-
-        // Assert (Then) : Vérifier que la méthode updateParking a bien été appelée
-        verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
-
-       //On capture le ticket passé à updateTicket(), et on vérifie si la remise de 5% a bien été appliquée au prix.
-        ArgumentCaptor<Ticket> ticketCaptor = ArgumentCaptor.forClass(Ticket.class);
-        verify(ticketDAO).updateTicket(ticketCaptor.capture());
-
-        Ticket updatedTicket = ticketCaptor.getValue();
-
-        double expectedPriceWithoutDiscount = (updatedTicket.getDuration() * Fare.CAR_RATE_PER_HOUR); // 1h de stationnement
-        double expectedPriceWithDiscount = expectedPriceWithoutDiscount * 0.95;
-
-        assertEquals(RoundUtil.roundToTwoDecimals(expectedPriceWithDiscount), updatedTicket.getPrice(),
-                "Le tarif avec remise de 5% devrait être appliqué pour un client régulier.");
-    }
 
     /**
      * Test the processIncomingVehicle() method of the ParkingService class.

@@ -4,6 +4,9 @@ import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.util.RoundUtil;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class FareCalculatorService {
 
     public void calculateFare(Ticket ticket, boolean discount) {
@@ -11,8 +14,12 @@ public class FareCalculatorService {
             throw new IllegalArgumentException("Out time provided is incorrect:" + ticket.getOutTime().toString());
         }
 
+        long inTime = ticket.getInTime().getTime();
+        long outTime = ticket.getOutTime().getTime();
+
         //Passage de millisecondes à heures : 3600000f équivalent à 60.0*60.0*1000.0
-        float durationInHours = ticket.getDuration();
+        double durationInHours = (outTime - inTime) / 3_600_000.0;
+        durationInHours = BigDecimal.valueOf(durationInHours).setScale(2, RoundingMode.HALF_UP).doubleValue();
 
         // Si la durée est inférieure à 30 minutes, le prix doit être égal à 0
         if (durationInHours < 0.5) {
