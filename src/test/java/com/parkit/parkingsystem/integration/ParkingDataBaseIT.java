@@ -116,7 +116,7 @@ public class ParkingDataBaseIT {
     // Tests vehicle exit and correct fare calculation after 60 minutes
     @Test
     public void testParkingLotExit() {
-        // GIVEN – ticket ouvert depuis 60 min
+        // GIVEN – ticket ouvert depuis 60min
         createTicket("ABCDEF", 1, false, 60, null);
 
         //WHEN
