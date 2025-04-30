@@ -54,7 +54,7 @@ public class ParkingServiceTest {
     public void processExitingVehicleTest() throws Exception {
         //corresponds precisely to processExitingVehicleTest_nonRegularClient_shouldNotApplyDiscount()
         // Arrange (Given)
-        //Définition ou Stubbing du comportement attendu du mock (stub)
+        // Definition or Stubbing of the expected behavior of the mock (stub)
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
         when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
         when(ticketDAO.getNbTicket(anyString())).thenReturn(1); // 1 seul ticket → pas de remise
@@ -64,7 +64,7 @@ public class ParkingServiceTest {
         // Act (When)
         parkingService.processExitingVehicle();
 
-        // Assert (Then) : Vérifier que la méthode updateParking a bien été appelée
+        // Assert (Then) : // Verify that the updateParking method was called correctly
         verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
 
         assertNotNull(ticket.getOutTime(), "The ticket out time must not be Null");
@@ -101,7 +101,7 @@ public class ParkingServiceTest {
         parkingService.processIncomingVehicle();
 
         //Assert(Then)
-        // Vérification des comportements → que les bonnes méthodes ont bien été appelées
+        // Verification of behaviors → ensuring that the correct methods were called
         verify(parkingSpotDAO, times(1)).updateParking(any(ParkingSpot.class));// Vérifie que l'emplacement a été marqué comme occupé
         verify(ticketDAO, times(1)).saveTicket(any(Ticket.class));// Vérifie que le ticket a été enregistré
         verify(ticketDAO, times(1)).getNbTicket("ABCDEF");// Vérifie que le nombre de tickets existants a été vérifié
@@ -130,7 +130,7 @@ public class ParkingServiceTest {
         //Act (When)
         parkingService.processExitingVehicle();
 
-        // Assert (Then) : Vérifier que la méthode updateParking n'a JAMAIS été appelée en cas d'échec d'updateTicket()
+        // Assert (Then) : // Verify that the updateParking method was NEVER called in case of updateTicket() failure
         verify(parkingSpotDAO, Mockito.never()).updateParking(any(ParkingSpot.class));
 
         assertFalse(ticketDAO.updateTicket(any(Ticket.class)),"La mise à jour du ticket aurait dû échouer (updateTicket doit renvoyer false).");

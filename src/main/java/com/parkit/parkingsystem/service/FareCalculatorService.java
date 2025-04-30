@@ -17,11 +17,11 @@ public class FareCalculatorService {
         long inTime = ticket.getInTime().getTime();
         long outTime = ticket.getOutTime().getTime();
 
-        //Passage de millisecondes à heures : 3600000f équivalent à 60.0*60.0*1000.0
+        //Moving from milliseconds to hours : 3_600_000.0 équivalent à 60.0*60.0*1000.0
         double durationInHours = (outTime - inTime) / 3_600_000.0;
         durationInHours = BigDecimal.valueOf(durationInHours).setScale(2, RoundingMode.HALF_UP).doubleValue();
 
-        // Si la durée est inférieure à 30 minutes, le prix doit être égal à 0
+        // If the duration is less than 30 minutes, the price must be equal to 0
         if (durationInHours < 0.5) {
             ticket.setPrice(0);
         } else {
@@ -36,7 +36,7 @@ public class FareCalculatorService {
                     break;
                 }
                 default:
-                    throw new IllegalArgumentException("Unkown Parking Type");
+                    throw new IllegalArgumentException("Unknown Parking Type");
             }
 
             if (discount) {

@@ -127,53 +127,49 @@ public class FareCalculatorServiceTest {
 
     @Test
     public void calculateFareCarWithLessThan30minutesParkingTime() {
-        // Heure d'entrée (inTime)
         Date inTime = new Date();
-        // Heure de sortie : moins de 30 minutes après le inTime
         Date outTime = new Date();
-        outTime.setTime(inTime.getTime() + (29 * 60 * 1000));  // 29 minutes après inTime
+        outTime.setTime(inTime.getTime() + (29 * 60 * 1000));  // 29 minutes after inTime
 
-        // Créer un objet ParkingSpot pour une voiture
+        // Create a ParkingSpot object for a car
         ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
 
-        // Créer un ticket et définir ses valeurs
+        // Create a Ticket and set its values
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
 
-        // Appeler la méthode calculateFare
+        // Call the calculateFare method
         fareCalculatorService.calculateFare(ticket);
 
-        // Vérifier que le prix est égal à 0 pour un stationnement de moins de 30 minutes pour une voiture
+        // Check that the price is 0 for parking under 30 minutes for a car
         assertEquals(0, ticket.getPrice(), "The fare should be 0 for less than 30 minutes of parking time of a CAR.");
     }
 
     @Test
     public void calculateFareBikeWithLessThan30minutesParkingTime() {
-        // Heure d'entrée (inTime)
         Date inTime = new Date();
-        // Heure de sortie : moins de 30 minutes après le inTime
         Date outTime = new Date();
-        outTime.setTime(inTime.getTime() + (29 * 60 * 1000));  // 29 minutes après inTime
+        outTime.setTime(inTime.getTime() + (29 * 60 * 1000));  // 29 minutes after inTime
 
-        // Créer un objet ParkingSpot pour une voiture
+        // Create a ParkingSpot object for a bike
         ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.BIKE, false);
 
-        // Créer un ticket et définir ses valeurs
+        // Create a Ticket and set its values
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
 
-        // Appeler la méthode calculateFare
+        // Call the calculateFare method
         fareCalculatorService.calculateFare(ticket);
 
-        // Vérifier que le prix est égal à 0 pour un stationnement de moins de 30 minutes pour une moto
+        // Check that the price is 0 for parking under 30 minutes for a bike
         assertEquals(0, ticket.getPrice(), "The fare should be 0 for less than 30 minutes of parking time of a BIKE.");
     }
 
     /**
-     * BONUS - Test ajouté pour vérifier le calcul du tarif pour exactement 30 minutes et plus.
-     * Ce test n'était pas explicitement demandé dans l'étape 3 du projet.
+     * BONUS – Additional test to verify fare calculation for exactly 30 minutes and above.
+     * This test was not explicitly required in step 3 of the project.
      */
     @Test
     public void calculateFareCarWithExactly30Minutes_shouldApplyHalfRate() {
@@ -195,8 +191,8 @@ public class FareCalculatorServiceTest {
     }
 
     /**
-     * BONUS - Test ajouté pour vérifier le calcul du tarif pour plus de 30 minutes
-     * Ce test n'était pas explicitement demandé dans l'étape 3 du projet.
+     * BONUS – Additional test to verify fare calculation for more than 30 minutes.
+     * This test was not explicitly required in step 3 of the project.
      */
     @Test
     public void calculateFareCarWithMoreThan30Minutes_shouldApplyCorrectRate() {
@@ -221,7 +217,7 @@ public class FareCalculatorServiceTest {
     public void calculateFareCarWithDiscountDescription() {
         // Arrange
         Date inTime = new Date();
-        Date outTime = new Date(inTime.getTime() + 60 * 60 * 1000); // 50 min
+        Date outTime = new Date(inTime.getTime() + 60 * 60 * 1000); // 60 min
         ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
 
         ticket.setInTime(inTime);

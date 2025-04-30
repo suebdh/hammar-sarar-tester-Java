@@ -3,90 +3,115 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- General project information -->
     <groupId>com.parkit</groupId>
     <artifactId>parking-system</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
+        <!-- Source encoding used for the project -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Java compiler version settings -->
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <!-- Updated Log4j version to fix critical security vulnerabilities (Log4Shell and others) -->
+        <log4j.version>2.24.3</log4j.version>  <!-- set the version of log4j -->
+        <!-- Jacoco version for code coverage -->
+        <jacoco.version>0.8.12</jacoco.version> <!-- set the version of jacoco -->
+        <!-- Version of Maven Assembly Plugin for creating archives -->
+        <maven-assembly-plugin.version>3.7.1
+        </maven-assembly-plugin.version> <!-- set the version of maven-assembly-plugin -->
     </properties>
 
     <dependencies>
+        <!-- Main project dependencies -->
+
+        <!-- Log4j API for logging management -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <version>2.12.1</version>
+            <version>${log4j.version}</version>
         </dependency>
+        <!-- Log4j Core for actual log management implementations -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.12.1</version>
+            <version>${log4j.version}</version>
         </dependency>
+        <!-- MySQL connector for interacting with the database -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.17</version>
+            <version>8.0.33</version> <!-- set the version of mysql-connector-java -->
         </dependency>
+        <!-- JUnit Jupiter for unit testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.3.2</version>
             <scope>test</scope>
         </dependency>
+        <!-- JUnit Jupiter Engine for executing JUnit tests -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>5.3.2</version>
             <scope>test</scope>
         </dependency>
+        <!-- Mockito for mocking objects in tests -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
             <version>2.23.4</version>
-            <scope>test</scope>
+            <scope>test</scope><!-- This dependency is used only for testing -->
         </dependency>
+        <!-- Jacoco for code coverage during tests -->
         <dependency>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.8.5</version>
+            <version>${jacoco.version}</version>
             <type>maven-plugin</type>
         </dependency>
+        <!-- Maven Assembly Plugin for creating archives with dependencies -->
         <dependency>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-assembly-plugin</artifactId>
-            <version>3.0.0</version>
+            <version>${maven-assembly-plugin.version}</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <!-- Maven Assembly Plugin configuration for packaging the project -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>${maven-assembly-plugin.version}</version>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <phase>package</phase><!-- Phase in which the execution should occur -->
                         <goals>
-                            <goal>single</goal>
+                            <goal>single</goal><!-- Single assembly goal to create a JAR -->
                         </goals>
                         <configuration>
                             <archive>
                                 <manifest>
                                     <mainClass>
-                                        com.parkit.parkingsystem.App
+                                        com.parkit.parkingsystem.App <!-- Main class of the application -->
                                     </mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                                <descriptorRef>jar-with-dependencies
+                                </descriptorRef> <!-- Create a JAR with dependencies -->
                             </descriptorRefs>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+            <!-- Maven Surefire Plugin configuration for running tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -94,33 +119,34 @@
                 <dependencies>
                     <dependency>
                         <groupId>org.junit.platform</groupId>
-                        <artifactId>junit-platform-surefire-provider</artifactId>
+                        <artifactId>junit-platform-surefire-provider</artifactId><!--Understand and execute unit tests in JUnit 5-->
                         <version>1.2.0</version>
                     </dependency>
                 </dependencies>
                 <configuration>
                     <excludes>
-                        <exclude>**/*IT.java</exclude>
+                        <exclude>**/*IT.java</exclude> <!-- Exclude integration tests (files with IT.java) -->
                     </excludes>
                 </configuration>
                 <executions>
                     <execution>
                         <id>integration-test</id>
                         <goals>
-                            <goal>test</goal>
+                            <goal>test</goal><!-- Goal to execute tests -->
                         </goals>
-                        <phase>integration-test</phase>
+                        <phase>integration-test</phase><!-- Phase to run integration tests -->
                         <configuration>
                             <excludes>
-                                <exclude>none</exclude>
+                                <exclude>none</exclude><!-- No tests excluded for this execution -->
                             </excludes>
                             <includes>
-                                <include>**/*IT.java</include>
+                                <include>**/*IT.java</include><!-- Include integration tests (files with IT.java) -->
                             </includes>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+            <!-- Jacoco Maven Plugin configuration for generating code coverage reports -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -128,18 +154,42 @@
                 <executions>
                     <execution>
                         <goals>
-                            <goal>prepare-agent</goal>
+                            <goal>prepare-agent</goal><!--Attach the Jacoco agent during test execution-->
                         </goals>
                     </execution>
                     <execution>
                         <id>jacoco-report</id>
-                        <phase>verify</phase> <!-- Génération du rapport dans la phase verify -->
+                        <phase>verify</phase> <!--Generate the report during the verify phase -->
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <!--
+                <configuration>
+                    <excludes>
+                        <exclude>com/parkit/parkingsystem/config/**</exclude>
+                    </excludes>
+                </configuration>
+                -->
+            </plugin>
+
+            <!-- Maven Surefire Report Plugin configuration for generating test reports in HTML format
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>3.5.3</version>
+                <executions>
+                    <execution>
+                        <id>surefire-report</id>
+                        <phase>verify</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
+            -->
         </plugins>
     </build>
 
